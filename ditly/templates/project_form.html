@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+{% block title %}Новый проект — Дитли{% endblock %}
+{% block body %}
+<section class="card narrow">
+  <h1>Новый проект</h1>
+  <p class="muted">Вы сразу сможете добавлять ссылки и открывать проект коллегам.</p>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <form method="post" action="{{ url_for('project_create') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>
+      Название
+      <input name="name" required maxlength="120" value="{{ name|default('') }}" placeholder="Приложение клиента во ВКонтакте">
+    </label>
+    <button type="submit">Создать проект</button>
+  </form>
+</section>
+{% endblock %}

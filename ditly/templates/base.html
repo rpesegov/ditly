@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex">
+  <title>{% block title %}Дитли{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}?v=2">
+</head>
+<body>
+  <header class="top">
+    <a class="brand" href="{{ url_for('home') }}">
+      <span class="brand-name">Дитли</span>
+      <span class="brand-note">короткие ссылки</span>
+    </a>
+    {% if current_login %}
+    <nav>
+      <a href="{{ url_for('project_list') }}">Проекты</a>
+      <a href="{{ url_for('user_new') }}">Новая учётка</a>
+      <span class="who">{{ current_login }}</span>
+      <form method="post" action="{{ url_for('logout') }}">
+        <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+        <button class="ghost" type="submit">Выйти</button>
+      </form>
+    </nav>
+    {% endif %}
+  </header>
+  <main>
+    {% with messages = get_flashed_messages() %}
+      {% if messages %}
+        <ul class="flashes">
+          {% for message in messages %}
+            <li>{{ message }}</li>
+          {% endfor %}
+        </ul>
+      {% endif %}
+    {% endwith %}
+    {% block body %}{% endblock %}
+  </main>
+  {% if current_login %}
+  <footer>Базовый адрес коротких ссылок: {{ base_url }}</footer>
+  {% endif %}
+  <script>
+    document.addEventListener("click", function (event) {
+      var button = event.target.closest("[data-copy]");
+      if (!button || !navigator.clipboard) return;
+      navigator.clipboard.writeText(button.getAttribute("data-copy")).then(function () {
+        button.textContent = "Скопировано";
+      });
+    });
+  </script>
+</body>
+</html>

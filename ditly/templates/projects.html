@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+{% block title %}Проекты — Дитли{% endblock %}
+{% block body %}
+<div class="page-head">
+  <h1>Проекты</h1>
+  <a class="button" href="{{ url_for('project_new') }}">Новый проект</a>
+</div>
+{% if projects %}
+<ul class="cards">
+  {% for project in projects %}
+  <li>
+    <a href="{{ url_for('project_detail', project_id=project.id) }}">
+      <strong>{{ project.name }}</strong>
+      <span>{{ role_labels[project.role] }}</span>
+      <span class="muted">Ссылок: {{ project.link_count }}</span>
+    </a>
+  </li>
+  {% endfor %}
+</ul>
+{% else %}
+<p class="empty">Проектов пока нет. Создайте проект и сложите в него ссылки. Чужой проект здесь не появится, пока вам не откроют доступ.</p>
+{% endif %}
+{% endblock %}

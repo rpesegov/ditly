@@ -1,0 +1,33 @@
+{% extends "base.html" %}
+{% block title %}{% if link %}Изменить ссылку{% else %}Новая ссылка{% endif %} — Дитли{% endblock %}
+{% block body %}
+<p class="back"><a href="{{ url_for('project_detail', project_id=project.id) }}">{{ project.name }}</a></p>
+<section class="card narrow">
+  <h1>{% if link %}Изменить ссылку{% else %}Новая ссылка{% endif %}</h1>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <form method="post">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>
+      Пометка
+      <input name="label" required maxlength="200" value="{{ label|default('') }}" placeholder="ВК, приложение клиента">
+    </label>
+    <label>
+      Длинный адрес
+      <input name="url" type="url" required maxlength="4000" value="{{ url|default('') }}" placeholder="https://">
+    </label>
+    {% if link %}
+    <label class="check">
+      <input type="checkbox" name="enabled" value="1" {% if enabled %}checked{% endif %}>
+      Ссылка включена
+    </label>
+    {% endif %}
+    <button type="submit">{% if link %}Сохранить{% else %}Создать ссылку{% endif %}</button>
+  </form>
+  {% if link %}
+  <form class="delete-link" method="post" action="{{ url_for('link_delete', project_id=project.id, link_id=link.id) }}" onsubmit="return confirm('Удалить ссылку? Статистика тоже удалится.');">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button class="danger" type="submit">Удалить ссылку</button>
+  </form>
+  {% endif %}
+</section>
+{% endblock %}

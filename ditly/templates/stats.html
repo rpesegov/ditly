@@ -1,0 +1,108 @@
+{% extends "base.html" %}
+{% block title %}{{ link.label }} — статистика{% endblock %}
+{% block body %}
+<p class="back"><a href="{{ url_for('project_detail', project_id=project.id) }}">{{ project.name }}</a></p>
+<div class="page-head">
+  <div>
+    <h1>{{ link.label }}</h1>
+    <p class="muted">{% if link.enabled %}Ссылка включена{% else %}Ссылка выключена и никуда не ведёт{% endif %}</p>
+  </div>
+  {% if can(role, 'edit') %}
+  <a class="button ghost" href="{{ url_for('link_edit', project_id=project.id, link_id=link.id) }}">Изменить</a>
+  {% endif %}
+</div>
+
+<section class="card">
+  <h2>Короткая ссылка</h2>
+  <div class="copyline">
+    <input readonly value="{{ short }}" aria-label="Короткая ссылка">
+    <button type="button" class="ghost" data-copy="{{ short }}">Скопировать</button>
+  </div>
+  <p class="url-full">Куда ведёт: <a href="{{ link.url }}">{{ link.url }}</a></p>
+</section>
+
+<section class="card">
+  <div class="page-head">
+    <h2>Переходы</h2>
+    {% if stats.include_bots %}
+    <a href="{{ url_for('link_stats', project_id=project.id, link_id=link.id) }}">Скрыть автоматические заходы</a>
+    {% else %}
+    <a href="{{ url_for('link_stats', project_id=project.id, link_id=link.id, bots=1) }}">Показать автоматические заходы</a>
+    {% endif %}
+  </div>
+  <p class="total" id="click-total" data-total="{{ stats.total }}">Переходов: {{ stats.total }}</p>
+  {% if stats.include_bots %}
+  <p class="muted" id="bot-note">Автоматические заходы показаны. Их {{ stats.bot_count }}.</p>
+  {% else %}
+  <p class="muted" id="bot-note" data-hidden="{{ stats.bot_count }}">Автоматические заходы скрыты. Скрыто: {{ stats.bot_count }}.</p>
+  {% endif %}
+
+  <h3>По суткам, время — Москва</h3>
+  {% if stats.days %}
+  <ul class="bars">
+    {% for row in stats.days %}
+    <li>
+      <span class="bar-label">{{ row.label }}</span>
+      <span class="bar" aria-hidden="true"><span style="width: {{ row.width }}%"></span></span>
+      <span class="bar-count">{{ row.count }}</span>
+    </li>
+    {% endfor %}
+  </ul>
+  {% else %}
+  <p class="empty">За этот фильтр переходов нет.</p>
+  {% endif %}
+
+  <div class="splits">
+    <section>
+      <h3>Источник</h3>
+      {% if stats.referrers %}
+      <ul class="bars">
+        {% for row in stats.referrers %}
+        <li>
+          <span class="bar-label" title="{{ row.label }}">{{ row.label }}</span>
+          <span class="bar" aria-hidden="true"><span style="width: {{ row.width }}%"></span></span>
+          <span class="bar-count">{{ row.count }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="empty">Браузер часто не передаёт источник.</p>
+      {% endif %}
+    </section>
+    <section>
+      <h3>Устройство</h3>
+      {% if stats.devices %}
+      <ul class="bars">
+        {% for row in stats.devices %}
+        <li>
+          <span class="bar-label">{{ row.label }}</span>
+          <span class="bar" aria-hidden="true"><span style="width: {{ row.width }}%"></span></span>
+          <span class="bar-count">{{ row.count }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="empty">Нет данных.</p>
+      {% endif %}
+    </section>
+    <section>
+      <h3>Страна</h3>
+      {% if stats.countries %}
+      <ul class="bars">
+        {% for row in stats.countries %}
+        <li>
+          <span class="bar-label">{{ row.label }}</span>
+          <span class="bar" aria-hidden="true"><span style="width: {{ row.width }}%"></span></span>
+          <span class="bar-count">{{ row.count }}</span>
+        </li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      <p class="empty">Нет данных.</p>
+      {% endif %}
+    </section>
+  </div>
+  <p id="visitors">Разных посетителей: {{ stats.visitors }}</p>
+  <p class="muted">Посетитель — это браузер, который сохранил ключ, а не конкретный человек. В разрезах только те переходы, где поле удалось заполнить. Сутки считаются по Europe/Moscow.</p>
+</section>
+{% endblock %}

@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+{% block title %}{{ project.name }} — Дитли{% endblock %}
+{% block body %}
+<p class="back"><a href="{{ url_for('project_list') }}">Все проекты</a></p>
+<div class="page-head">
+  <div>
+    <h1>{{ project.name }}</h1>
+    <p class="role">{{ role_labels[role] }}</p>
+  </div>
+  {% if can(role, 'edit') %}
+  <a class="button" href="{{ url_for('link_new', project_id=project.id) }}">Новая ссылка</a>
+  {% endif %}
+</div>
+
+{% if can(role, 'manage') %}
+<form class="rename" method="post" action="{{ url_for('project_rename', project_id=project.id) }}">
+  <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+  <label>
+    Название проекта
+    <input name="name" required maxlength="120" value="{{ project.name }}">
+  </label>
+  <button class="ghost" type="submit">Переименовать</button>
+</form>
+{% endif %}
+
+{% if links %}
+<div class="table-wrap">
+  <table>
+    <thead>
+      <tr>
+        <th>Пометка</th>
+        <th>Короткая ссылка</th>
+        <th>Куда ведёт</th>
+        <th>Состояние</th>
+        <th>Переходы</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for link in links %}
+      {% set short = short_url(link.code) %}
+      <tr>
+        <td>{{ link.label }}</td>
+        <td>
+          <div class="short-cell">
+            <a href="{{ short }}">{{ short }}</a>
+            <button type="button" class="ghost" data-copy="{{ short }}">Скопировать</button>
+          </div>
+        </td>
+        <td class="url" title="{{ link.url }}">{{ link.url }}</td>
+        <td>{% if link.enabled %}Включена{% else %}Выключена{% endif %}</td>
+        <td data-clicks="{{ link.clicks }}">{{ link.clicks }}</td>
+        <td class="actions">
+          <a href="{{ url_for('link_stats', project_id=project.id, link_id=link.id) }}">Статистика</a>
+          {% if can(role, 'edit') %}
+          <a href="{{ url_for('link_edit', project_id=project.id, link_id=link.id) }}">Изменить</a>
+          {% endif %}
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+<p class="muted">В столбце «Переходы» автоматические заходы не считаются. На странице статистики их можно показать.</p>
+{% else %}
+<p class="empty">В проекте пока нет ссылок.</p>
+{% endif %}
+
+{% if can(role, 'manage') %}
+<section class="card" id="access">
+  <h2>Доступ</h2>
+  <p class="muted">Поделиться можно с тем, у кого уже есть учётка. Просмотр видит ссылки и статистику. Редактирование меняет ссылки. Управление доступом включает и то и другое и позволяет открывать проект другим.</p>
+  <form class="share" method="post" action="{{ url_for('member_set', project_id=project.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>
+      Логин
+      <input name="login" required autocomplete="off">
+    </label>
+    <label>
+      Роль
+      <select name="role">
+        {% for key, label in role_options %}
+        <option value="{{ key }}">{{ label }}</option>
+        {% endfor %}
+      </select>
+    </label>
+    <button type="submit">Открыть доступ</button>
+  </form>
+  <table>
+    <thead>
+      <tr>
+        <th>Кто</th>
+        <th>Роль</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for member in members %}
+      <tr>
+        <td>{{ member.login }}</td>
+        <td>
+          <form class="inline" method="post" action="{{ url_for('member_set', project_id=project.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="user_id" value="{{ member.user_id }}">
+            <select name="role" aria-label="Роль {{ member.login }}">
+              {% for key, label in role_options %}
+              <option value="{{ key }}" {% if member.role == key %}selected{% endif %}>{{ label }}</option>
+              {% endfor %}
+            </select>
+            <button class="ghost" type="submit">Сохранить</button>
+          </form>
+        </td>
+        <td>
+          <form method="post" action="{{ url_for('member_remove', project_id=project.id) }}">
+            <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+            <input type="hidden" name="user_id" value="{{ member.user_id }}">
+            <button class="ghost" type="submit">Убрать</button>
+          </form>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</section>
+
+<details class="danger-zone">
+  <summary>Удалить проект</summary>
+  <p>Удалятся ссылки и статистика проекта «{{ project.name }}».</p>
+  <form method="post" action="{{ url_for('project_delete', project_id=project.id) }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <button class="danger" type="submit">Удалить проект</button>
+  </form>
+</details>
+{% endif %}
+{% endblock %}

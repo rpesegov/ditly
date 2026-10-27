@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+{% block title %}Новая учётка — Дитли{% endblock %}
+{% block body %}
+<section class="card narrow">
+  <h1>Новая учётка</h1>
+  <p class="muted">Человек сможет войти, но не увидит чужие проекты, пока ему не откроют доступ.</p>
+  {% if error %}<p class="error">{{ error }}</p>{% endif %}
+  <form method="post" action="{{ url_for('user_create') }}">
+    <input type="hidden" name="csrf_token" value="{{ csrf_token }}">
+    <label>
+      Логин
+      <input name="login" required autocomplete="off" value="{{ login_value|default('') }}">
+    </label>
+    <label>
+      Пароль
+      <input name="password" type="password" required autocomplete="new-password">
+    </label>
+    <label>
+      Пароль ещё раз
+      <input name="password_again" type="password" required autocomplete="new-password">
+    </label>
+    <button type="submit">Создать учётку</button>
+  </form>
+</section>
+{% endblock %}
